@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bond Market Alerts | BondStats</title>
+  <style>
+    :root {
+      --bg: #07111f;
+      --card: #0f1d31;
+      --line: rgba(255,255,255,0.08);
+      --text: #f4f7fb;
+      --muted: #9db0c9;
+      --soft: #7f93ad;
+      --accent: #8ec5ff;
+      --green: #5fd39a;
+      --red: #ff8a8a;
+      --shadow: 0 14px 40px rgba(0,0,0,0.28);
+      --radius: 18px;
+      --max: 1080px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(84,133,214,0.14), transparent 32%),
+        linear-gradient(180deg, #07111f 0%, #081321 100%);
+      color: var(--text);
+    }
+
+    .wrap {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 28px 18px 56px;
+    }
+
+    .hero, .card {
+      background: linear-gradient(180deg, rgba(17,29,49,0.95), rgba(12,22,38,0.98));
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 42px;
+      letter-spacing: -0.03em;
+    }
+
+    .sub {
+      color: var(--muted);
+      line-height: 1.7;
+      margin: 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .label {
+      display: block;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--soft);
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    input, select, button {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.03);
+      color: var(--text);
+      padding: 12px 14px;
+      font-size: 14px;
+      margin-bottom: 14px;
+    }
+
+    button {
+      cursor: pointer;
+      background: linear-gradient(180deg, rgba(142,197,255,0.18), rgba(142,197,255,0.08));
+      border-color: rgba(142,197,255,0.18);
+      font-weight: 700;
+    }
+
+    button:hover {
+      filter: brightness(1.05);
+    }
+
+    .alert-row {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .alert-main {
+      min-width: 0;
+    }
+
+    .alert-title {
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .alert-sub {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      background: rgba(95,211,154,0.10);
+      color: var(--green);
+      border: 1px solid rgba(95,211,154,0.15);
+    }
+
+    .pill.off {
+      background: rgba(255,126,126,0.10);
+      color: var(--red);
+      border-color: rgba(255,126,126,0.15);
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .error {
+      color: var(--red);
+      margin-top: 10px;
+    }
+
+    .success {
+      color: var(--green);
+      margin-top: 10px;
+    }
+
+    @media (max-width: 860px) {
+      .grid { grid-template-columns: 1fr; }
+      .alert-row { grid-template-columns: 1fr; }
+      h1 { font-size: 34px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>Bond Market Alerts</h1>
+      <p class="sub">
+        Create email alerts for sovereign yields and daily market moves. Track the latest available BondStats data and get notified when your thresholds are hit.
+      </p>
+    </section>
+
+    <div class="grid">
+      <section class="card">
+        <h2>Create Alert</h2>
+
+        <label class="label">Email</label>
+        <input id="email" type="email" placeholder="you@example.com" />
+
+        <label class="label">Country</label>
+        <select id="country"></select>
+
+        <label class="label">Metric</label>
+        <select id="metric">
+          <option value="yield">Yield</option>
+          <option value="move">Daily Move (bp)</option>
+        </select>
+
+        <label class="label">Operator</label>
+        <select id="operator">
+          <option value="gt">Greater than</option>
+          <option value="lt">Less than</option>
+        </select>
+
+        <label class="label">Threshold</label>
+        <input id="threshold" type="number" step="0.01" placeholder="4.50 or 10" />
+
+        <label class="label">Cooldown (minutes)</label>
+        <input id="cooldown" type="number" step="1" value="720" />
+
+        <button id="createBtn">Create Alert</button>
+        <div id="formMessage"></div>
+      </section>
+
+      <section class="card">
+        <h2>Your Alerts</h2>
+        <p class="muted">Enter your email and load your saved alerts.</p>
+
+        <label class="label">Email</label>
+        <input id="lookupEmail" type="email" placeholder="you@example.com" />
+        <button id="loadBtn">Load Alerts</button>
+
+        <div id="alertsList"></div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "https://YOUR-SUPABASE-EDGE-FUNCTIONS-OR-API";
+    const DATA_URL = "https://botapi33.github.io/bondstats-global-yields/global_yields.json";
+
+    let latestMarkets = [];
+
+    async function loadCountries() {
+      const res = await fetch(DATA_URL, { cache: "no-store" });
+      const json = await res.json();
+      const source = json?.data || {};
+      latestMarkets = Object.values(source).filter(x => x && x.label);
+
+      const countrySelect = document.getElementById("country");
+      countrySelect.innerHTML = latestMarkets
+        .sort((a,b) => a.label.localeCompare(b.label))
+        .map(d => `<option value="${d.label}">${d.label}</option>`)
+        .join("");
+    }
+
+    async function createAlert() {
+      const payload = {
+        email: document.getElementById("email").value.trim(),
+        country: document.getElementById("country").value,
+        metric: document.getElementById("metric").value,
+        operator: document.getElementById("operator").value,
+        threshold: Number(document.getElementById("threshold").value),
+        cooldown_minutes: Number(document.getElementById("cooldown").value || 720)
+      };
+
+      const msg = document.getElementById("formMessage");
+      msg.className = "";
+      msg.textContent = "";
+
+      if (!payload.email || !payload.country || !payload.metric || !payload.operator || Number.isNaN(payload.threshold)) {
+        msg.className = "error";
+        msg.textContent = "Please fill in all fields.";
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/alerts/create`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || "Failed to create alert.");
+        }
+
+        msg.className = "success";
+        msg.textContent = "Alert created successfully.";
+      } catch (err) {
+        msg.className = "error";
+        msg.textContent = err.message;
+      }
+    }
+
+    async function loadAlerts() {
+      const email = document.getElementById("lookupEmail").value.trim();
+      const list = document.getElementById("alertsList");
+
+      if (!email) {
+        list.innerHTML = `<div class="error">Please enter an email address.</div>`;
+        return;
+      }
+
+      list.innerHTML = `<div class="muted">Loading alerts...</div>`;
+
+      try {
+        const res = await fetch(`${API_BASE}/alerts/list?email=${encodeURIComponent(email)}`);
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || "Failed to load alerts.");
+        }
+
+        if (!data.alerts.length) {
+          list.innerHTML = `<div class="muted">No alerts found for this email.</div>`;
+          return;
+        }
+
+        list.innerHTML = data.alerts.map(alert => `
+          <div class="alert-row">
+            <div class="alert-main">
+              <div class="alert-title">${alert.country} · ${alert.metric} ${alert.operator === 'gt' ? '>' : '<'} ${alert.threshold}</div>
+              <div class="alert-sub">
+                cooldown: ${alert.cooldown_minutes} min · created: ${new Date(alert.created_at).toLocaleString()}
+              </div>
+            </div>
+            <div>
+              <span class="pill ${alert.is_active ? '' : 'off'}">${alert.is_active ? 'Active' : 'Paused'}</span>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button onclick="toggleAlert('${alert.id}', ${alert.is_active})">${alert.is_active ? 'Pause' : 'Activate'}</button>
+              <button onclick="deleteAlert('${alert.id}')">Delete</button>
+            </div>
+          </div>
+        `).join("");
+      } catch (err) {
+        list.innerHTML = `<div class="error">${err.message}</div>`;
+      }
+    }
+
+    async function toggleAlert(id, currentState) {
+      await fetch(`${API_BASE}/alerts/toggle`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, is_active: !currentState })
+      });
+      loadAlerts();
+    }
+
+    async function deleteAlert(id) {
+      await fetch(`${API_BASE}/alerts/delete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id })
+      });
+      loadAlerts();
+    }
+
+    document.getElementById("createBtn").addEventListener("click", createAlert);
+    document.getElementById("loadBtn").addEventListener("click", loadAlerts);
+
+    loadCountries();
+  </script>
+</body>
+</html>
