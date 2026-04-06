@@ -2,688 +2,162 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bond Market Alerts | BondStats</title>
+  <title>Bond Alerts | BondStats</title>
   <style>
-    :root {
-      --bg: #07111f;
-      --bg-soft: #0b1627;
-      --card: #0f1d31;
-      --card-2: #13233a;
-      --line: rgba(255,255,255,0.08);
-      --text: #f4f7fb;
-      --muted: #9db0c9;
-      --soft: #7f93ad;
-      --accent: #8ec5ff;
-      --accent-2: #b7d8ff;
-      --green: #5fd39a;
-      --red: #ff8a8a;
-      --amber: #ffd27a;
-      --shadow: 0 14px 40px rgba(0,0,0,0.28);
-      --radius: 20px;
-      --max: 1180px;
+    body {
+      font-family: Arial;
+      background: #0e1117;
+      color: white;
+      padding: 40px;
+      max-width: 800px;
+      margin: auto;
     }
 
-    * { box-sizing: border-box; }
-
-    html, body {
-      margin: 0;
-      padding: 0;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(circle at top left, rgba(84,133,214,0.14), transparent 32%),
-        radial-gradient(circle at top right, rgba(143,191,255,0.10), transparent 24%),
-        linear-gradient(180deg, #07111f 0%, #081321 100%);
-    }
-
-    .wrap {
-      max-width: var(--max);
-      margin: 0 auto;
-      padding: 28px 20px 56px;
-    }
-
-    .hero,
-    .card {
-      background: linear-gradient(145deg, rgba(18,33,55,0.97), rgba(10,20,36,0.98));
-      border: 1px solid var(--line);
-      border-radius: 24px;
-      box-shadow: var(--shadow);
-    }
-
-    .hero {
-      padding: 32px 30px 28px;
-      margin-bottom: 22px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .hero::before {
-      content: "";
-      position: absolute;
-      right: -80px;
-      bottom: -110px;
-      width: 340px;
-      height: 340px;
-      background: radial-gradient(circle, rgba(142,197,255,0.18), transparent 65%);
-      pointer-events: none;
-    }
-
-    .eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid var(--line);
-      color: var(--accent-2);
-      font-size: 12px;
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      margin-bottom: 14px;
-    }
-
-    h1 {
-      margin: 0 0 10px;
-      font-size: clamp(34px, 5vw, 56px);
-      line-height: 1.03;
-      letter-spacing: -0.03em;
-    }
-
-    .subline {
-      margin: 0;
-      max-width: 860px;
-      color: var(--muted);
-      font-size: 16px;
-      line-height: 1.7;
-    }
-
-    .hero-meta {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-      margin-top: 22px;
-    }
-
-    .meta-box {
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.06);
-      border-radius: 16px;
-      padding: 14px 16px;
-    }
-
-    .meta-label {
-      color: var(--soft);
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-
-    .meta-value {
-      font-weight: 700;
-      font-size: 15px;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 18px;
-    }
-
-    .card {
-      padding: 22px;
-    }
-
-    .card h2 {
-      margin: 0 0 8px;
-      font-size: 24px;
-      letter-spacing: -0.02em;
-    }
-
-    .card p {
-      margin: 0 0 18px;
-      color: var(--muted);
-      line-height: 1.6;
-    }
-
-    .label {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 12px;
-      color: var(--soft);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      font-weight: 800;
-    }
-
-    input,
-    select,
-    button {
+    input, select, button {
       width: 100%;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(255,255,255,0.03);
-      color: var(--text);
-      padding: 12px 14px;
-      font-size: 14px;
-      margin-bottom: 14px;
-    }
-
-    select option {
-      color: #111;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 6px;
+      border: none;
     }
 
     button {
+      background: #2563eb;
+      color: white;
       cursor: pointer;
-      background: linear-gradient(180deg, rgba(142,197,255,0.18), rgba(142,197,255,0.08));
-      border-color: rgba(142,197,255,0.20);
-      font-weight: 700;
-      transition: transform 0.15s ease, filter 0.15s ease;
     }
 
-    button:hover {
-      transform: translateY(-1px);
-      filter: brightness(1.04);
-    }
-
-    button.secondary {
-      background: rgba(255,255,255,0.04);
-      border-color: rgba(255,255,255,0.10);
-    }
-
-    .row-2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    .message {
-      min-height: 20px;
-      font-size: 14px;
-      margin-top: 4px;
-    }
-
-    .message.success {
-      color: var(--green);
-    }
-
-    .message.error {
-      color: var(--red);
-    }
-
-    .message.info {
-      color: var(--muted);
-    }
-
-    .alert-list {
-      display: grid;
-      gap: 12px;
-      margin-top: 10px;
+    .box {
+      background: #161b22;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
     }
 
     .alert-item {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 14px;
-      align-items: center;
-      padding: 14px 16px;
-      border-radius: 16px;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.05);
+      background: #1f2937;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 6px;
     }
 
-    .alert-main {
-      min-width: 0;
-    }
-
-    .alert-title {
-      font-weight: 700;
-      margin-bottom: 5px;
-      font-size: 15px;
-    }
-
-    .alert-sub {
-      font-size: 13px;
-      color: var(--muted);
-      line-height: 1.5;
-    }
-
-    .alert-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
-
-    .alert-actions button {
-      width: auto;
-      min-width: 88px;
-      margin: 0;
-      padding: 10px 12px;
-    }
-
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      padding: 6px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 800;
-      border: 1px solid transparent;
-      margin-right: 8px;
-    }
-
-    .pill.active {
-      background: rgba(95,211,154,0.10);
-      color: var(--green);
-      border-color: rgba(95,211,154,0.18);
-    }
-
-    .pill.paused {
-      background: rgba(255,126,126,0.10);
-      color: var(--red);
-      border-color: rgba(255,126,126,0.18);
-    }
-
-    .footer-note {
-      margin-top: 20px;
-      color: var(--soft);
-      font-size: 13px;
-      line-height: 1.6;
-    }
-
-    .share-line {
-      margin-top: 14px;
-      font-size: 13px;
-      color: var(--muted);
-    }
-
-    .share-line a {
-      color: var(--accent);
-      text-decoration: none;
-    }
-
-    @media (max-width: 980px) {
-      .grid,
-      .hero-meta {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 720px) {
-      .wrap {
-        padding: 16px 14px 40px;
-      }
-
-      .hero,
-      .card {
-        border-radius: 20px;
-      }
-
-      .hero {
-        padding: 24px 18px 20px;
-      }
-
-      .card {
-        padding: 18px;
-      }
-
-      .row-2 {
-        grid-template-columns: 1fr;
-      }
-
-      .alert-item {
-        grid-template-columns: 1fr;
-      }
-
-      .alert-actions {
-        justify-content: flex-start;
-      }
-    }
+    .success { color: #22c55e; }
+    .error { color: #ef4444; }
+    .info { color: #3b82f6; }
   </style>
 </head>
+
 <body>
-  <div class="wrap">
-    <section class="hero">
-      <div class="eyebrow">BondStats · Alerts System</div>
-      <h1>Bond Market Alerts</h1>
-      <p class="subline">
-        Create email alerts for sovereign yields and daily market moves using the latest available BondStats data.
-        Track specific countries, define thresholds, and turn BondStats into a repeat-use monitoring product.
-      </p>
 
-      <div class="hero-meta">
-        <div class="meta-box">
-          <div class="meta-label">Data Source</div>
-          <div class="meta-value">BondStats global yields feed</div>
-        </div>
-        <div class="meta-box">
-          <div class="meta-label">Alert Types</div>
-          <div class="meta-value">Yield thresholds · Daily move thresholds</div>
-        </div>
-        <div class="meta-box">
-          <div class="meta-label">Delivery</div>
-          <div class="meta-value">Email alerts via backend</div>
-        </div>
-      </div>
-    </section>
+<h1>Bond Market Alerts</h1>
 
-    <div class="grid">
-      <section class="card">
-        <h2>Create Alert</h2>
-        <p>Create a country-level bond alert. This frontend is ready to connect to Supabase + Resend.</p>
+<div class="box">
+  <h3>Create Alert</h3>
 
-        <label class="label" for="email">Email</label>
-        <input id="email" type="email" placeholder="you@example.com" />
+  <input id="email" placeholder="Email" />
+  <input id="country" placeholder="Country (e.g. US)" />
+  <input id="metric" placeholder="Metric (yield)" />
+  <input id="operator" placeholder="gt or lt" />
+  <input id="threshold" placeholder="Threshold (e.g. 5)" />
 
-        <label class="label" for="country">Country</label>
-        <select id="country">
-          <option value="">Loading countries...</option>
-        </select>
+  <button id="createBtn">Create Alert</button>
+  <p id="formMessage"></p>
+</div>
 
-        <div class="row-2">
-          <div>
-            <label class="label" for="metric">Metric</label>
-            <select id="metric">
-              <option value="yield">Yield</option>
-              <option value="move">Daily Move (bp)</option>
-            </select>
-          </div>
+<div class="box">
+  <h3>Load Alerts</h3>
 
-          <div>
-            <label class="label" for="operator">Condition</label>
-            <select id="operator">
-              <option value="gt">Greater than</option>
-              <option value="lt">Less than</option>
-            </select>
-          </div>
-        </div>
+  <input id="lookupEmail" placeholder="Email" />
+  <button id="loadBtn">Load Alerts</button>
 
-        <div class="row-2">
-          <div>
-            <label class="label" for="threshold">Threshold</label>
-            <input id="threshold" type="number" step="0.01" placeholder="4.50 or 10" />
-          </div>
+  <p id="loadMessage"></p>
+  <div id="alertsList"></div>
+</div>
 
-          <div>
-            <label class="label" for="cooldown">Cooldown (minutes)</label>
-            <input id="cooldown" type="number" step="1" value="720" />
-          </div>
-        </div>
+<script>
+const API_BASE = "https://ufifxuzrjpcoubsslomd.supabase.co/functions/v1";
+const SUPABASE_ANON_KEY = "sb_publishable_QVWdzPdemBca_V30AW9UNQ_oWtrQqG8";
 
-        <button id="createBtn">Create Alert</button>
-        <div id="formMessage" class="message"></div>
-      </section>
+function headers() {
+  return {
+    "Content-Type": "application/json",
+    "apikey": SUPABASE_ANON_KEY,
+    "Authorization": "Bearer " + SUPABASE_ANON_KEY
+  };
+}
 
-      <section class="card">
-        <h2>My Alerts</h2>
-        <p>Load existing alerts by email, then pause, reactivate, or delete them.</p>
+function msg(id, text, type) {
+  const el = document.getElementById(id);
+  el.innerText = text;
+  el.className = type;
+}
 
-        <label class="label" for="lookupEmail">Email</label>
-        <input id="lookupEmail" type="email" placeholder="you@example.com" />
+async function createAlert() {
+  const payload = {
+    email: document.getElementById("email").value,
+    country: document.getElementById("country").value,
+    metric: document.getElementById("metric").value,
+    operator: document.getElementById("operator").value,
+    threshold: Number(document.getElementById("threshold").value)
+  };
 
-        <button id="loadBtn" class="secondary">Load Alerts</button>
-        <div id="loadMessage" class="message"></div>
+  msg("formMessage", "Creating...", "info");
 
-        <div id="alertsList" class="alert-list"></div>
+  try {
+    const res = await fetch(API_BASE + "/alerts-create", {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify(payload)
+    });
 
-        <div class="footer-note">
-          This page is designed for the full BondStats alerts product layer. E-mail delivery only works after the backend,
-          database, and scheduler steps below are connected.
-        </div>
+    const data = await res.json();
 
-        <div class="share-line">
-          Share this page:
-          <a href="#" onclick="copyLink(); return false;">Copy link</a>
-          ·
-          <a href="#" onclick="shareX(); return false;">X</a>
-          ·
-          <a href="#" onclick="shareLinkedIn(); return false;">LinkedIn</a>
-        </div>
-      </section>
-    </div>
-  </div>
+    if (!res.ok) throw new Error(data.error);
 
-  <script>
-    const DATA_URL = "https://botapi33.github.io/bondstats-global-yields/global_yields.json";
+    msg("formMessage", "Alert created ✅", "success");
 
-    // CHANGE THIS AFTER YOU DEPLOY YOUR BACKEND
-    const API_BASE = "https://YOUR-PROJECT.functions.supabase.co";
+  } catch (e) {
+    msg("formMessage", "Error: " + e.message, "error");
+  }
+}
 
-    const PAGE_URL = "https://www.bondstats.org/bond-market-tools/bond-market-alerts";
+async function loadAlerts() {
+  const email = document.getElementById("lookupEmail").value;
 
-    let latestMarkets = [];
+  msg("loadMessage", "Loading...", "info");
 
-    function setMessage(id, text, type = "info") {
-      const el = document.getElementById(id);
-      el.textContent = text;
-      el.className = `message ${type}`;
-    }
+  try {
+    const res = await fetch(API_BASE + "/alerts-list", {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify({ email })
+    });
 
-    function escapeHtml(str) {
-      return String(str)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
+    const data = await res.json();
 
-    async function loadCountries() {
-      setMessage("formMessage", "Loading countries...", "info");
+    if (!res.ok) throw new Error(data.error);
 
-      try {
-        const res = await fetch(DATA_URL, { cache: "no-store" });
-        if (!res.ok) throw new Error(`Data feed error: HTTP ${res.status}`);
+    const list = document.getElementById("alertsList");
+    list.innerHTML = "";
 
-        const json = await res.json();
-        const source = json?.data || json?.countries || json || {};
+    data.alerts.forEach(a => {
+      const div = document.createElement("div");
+      div.className = "alert-item";
+      div.innerText = `${a.country} | ${a.metric} ${a.operator} ${a.threshold}`;
+      list.appendChild(div);
+    });
 
-        latestMarkets = Object.values(source)
-          .filter(item => item && typeof item === "object" && item.label)
-          .map(item => ({
-            label: item.label,
-            value: Number(item.value),
-            change: Number(item.change),
-            date: item.date || "—"
-          }))
-          .filter(item => item.label)
-          .sort((a, b) => a.label.localeCompare(b.label));
+    msg("loadMessage", "Loaded " + data.alerts.length + " alerts", "success");
 
-        const select = document.getElementById("country");
+  } catch (e) {
+    msg("loadMessage", "Error: " + e.message, "error");
+  }
+}
 
-        if (!latestMarkets.length) {
-          select.innerHTML = `<option value="">No countries loaded</option>`;
-          setMessage("formMessage", "No countries found in the live data feed.", "error");
-          return;
-        }
+document.getElementById("createBtn").onclick = createAlert;
+document.getElementById("loadBtn").onclick = loadAlerts;
 
-        select.innerHTML = latestMarkets
-          .map(item => `<option value="${escapeHtml(item.label)}">${escapeHtml(item.label)}</option>`)
-          .join("");
+</script>
 
-        setMessage("formMessage", "Countries loaded.", "success");
-      } catch (err) {
-        document.getElementById("country").innerHTML = `<option value="">Load failed</option>`;
-        setMessage("formMessage", err.message || "Failed to load countries.", "error");
-      }
-    }
-
-    async function createAlert() {
-      const payload = {
-        email: document.getElementById("email").value.trim(),
-        country: document.getElementById("country").value,
-        metric: document.getElementById("metric").value,
-        operator: document.getElementById("operator").value,
-        threshold: Number(document.getElementById("threshold").value),
-        cooldown_minutes: Number(document.getElementById("cooldown").value || 720)
-      };
-
-      if (!payload.email || !payload.country || !payload.metric || !payload.operator || Number.isNaN(payload.threshold)) {
-        setMessage("formMessage", "Please fill in all fields.", "error");
-        return;
-      }
-
-      setMessage("formMessage", "Creating alert...", "info");
-
-      try {
-        const res = await fetch(`${API_BASE}/alerts-create`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(payload)
-        });
-
-        const data = await res.json().catch(() => ({}));
-
-        if (!res.ok) {
-          throw new Error(data.error || "Failed to create alert.");
-        }
-
-        setMessage("formMessage", "Alert created successfully.", "success");
-      } catch (err) {
-        setMessage("formMessage", err.message || "Create failed.", "error");
-      }
-    }
-
-    async function loadAlerts() {
-      const email = document.getElementById("lookupEmail").value.trim();
-      const list = document.getElementById("alertsList");
-
-      if (!email) {
-        setMessage("loadMessage", "Please enter an email address.", "error");
-        return;
-      }
-
-      setMessage("loadMessage", "Loading alerts...", "info");
-      list.innerHTML = "";
-
-      try {
-        const res = await fetch(`${API_BASE}/alerts-list?email=${encodeURIComponent(email)}`);
-        const data = await res.json().catch(() => ({}));
-
-        if (!res.ok) {
-          throw new Error(data.error || "Failed to load alerts.");
-        }
-
-        const alerts = data.alerts || [];
-
-        if (!alerts.length) {
-          setMessage("loadMessage", "No alerts found for this email.", "info");
-          return;
-        }
-
-        setMessage("loadMessage", `${alerts.length} alert(s) loaded.`, "success");
-
-        list.innerHTML = alerts.map(alert => {
-          const activePill = alert.is_active
-            ? `<span class="pill active">Active</span>`
-            : `<span class="pill paused">Paused</span>`;
-
-          const operatorText = alert.operator === "gt" ? ">" : "<";
-          const metricText = alert.metric === "move" ? "Daily move (bp)" : "Yield";
-
-          return `
-            <div class="alert-item">
-              <div class="alert-main">
-                <div class="alert-title">
-                  ${activePill}
-                  ${escapeHtml(alert.country)} · ${escapeHtml(metricText)} ${operatorText} ${escapeHtml(alert.threshold)}
-                </div>
-                <div class="alert-sub">
-                  cooldown: ${escapeHtml(alert.cooldown_minutes)} min
-                  · created: ${alert.created_at ? new Date(alert.created_at).toLocaleString() : "—"}
-                  · last triggered: ${alert.last_triggered_at ? new Date(alert.last_triggered_at).toLocaleString() : "never"}
-                </div>
-              </div>
-              <div class="alert-actions">
-                <button class="secondary" onclick="toggleAlert('${escapeHtml(alert.id)}', ${alert.is_active ? "true" : "false"})">
-                  ${alert.is_active ? "Pause" : "Activate"}
-                </button>
-                <button onclick="deleteAlert('${escapeHtml(alert.id)}')">Delete</button>
-              </div>
-            </div>
-          `;
-        }).join("");
-      } catch (err) {
-        setMessage("loadMessage", err.message || "Load failed.", "error");
-      }
-    }
-
-    async function toggleAlert(id, currentState) {
-      try {
-        const res = await fetch(`${API_BASE}/alerts-toggle`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            id,
-            is_active: !currentState
-          })
-        });
-
-        const data = await res.json().catch(() => ({}));
-
-        if (!res.ok) {
-          throw new Error(data.error || "Failed to update alert.");
-        }
-
-        loadAlerts();
-      } catch (err) {
-        setMessage("loadMessage", err.message || "Toggle failed.", "error");
-      }
-    }
-
-    async function deleteAlert(id) {
-      try {
-        const res = await fetch(`${API_BASE}/alerts-delete`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ id })
-        });
-
-        const data = await res.json().catch(() => ({}));
-
-        if (!res.ok) {
-          throw new Error(data.error || "Failed to delete alert.");
-        }
-
-        loadAlerts();
-      } catch (err) {
-        setMessage("loadMessage", err.message || "Delete failed.", "error");
-      }
-    }
-
-    function copyLink() {
-      navigator.clipboard.writeText(PAGE_URL);
-    }
-
-    function shareX() {
-      window.open(
-        "https://twitter.com/intent/tweet?url=" + encodeURIComponent(PAGE_URL),
-        "_blank"
-      );
-    }
-
-    function shareLinkedIn() {
-      window.open(
-        "https://www.linkedin.com/sharing/share-offsite/?url=" + encodeURIComponent(PAGE_URL),
-        "_blank"
-      );
-    }
-
-    document.getElementById("createBtn").addEventListener("click", createAlert);
-    document.getElementById("loadBtn").addEventListener("click", loadAlerts);
-
-    loadCountries();
-  </script>
 </body>
 </html>
