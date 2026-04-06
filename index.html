@@ -91,13 +91,12 @@ function msg(id, text, type) {
   el.innerText = text;
   el.className = type;
 }
-
 async function createAlert() {
   const payload = {
-    email: document.getElementById("email").value,
-    country: document.getElementById("country").value,
-    metric: document.getElementById("metric").value,
-    operator: document.getElementById("operator").value,
+    email: document.getElementById("email").value.trim(),
+    country: document.getElementById("country").value.trim(),
+    metric: document.getElementById("metric").value.trim(),
+    operator: document.getElementById("operator").value.trim(),
     threshold: Number(document.getElementById("threshold").value)
   };
 
@@ -114,11 +113,16 @@ async function createAlert() {
 
     if (!res.ok) throw new Error(data.error);
 
-    msg("formMessage", "Alert created ✅", "success");
+    if (data.duplicate) {
+      msg("formMessage", "Alert already exists", "info");
+    } else {
+      msg("formMessage", "Alert created ✅", "success");
+    }
 
   } catch (e) {
     msg("formMessage", "Error: " + e.message, "error");
   }
+}
 }
 
 async function loadAlerts() {
