@@ -160,3 +160,29 @@ run().catch(err => {
   console.error("Runner failed:", err);
   process.exit(1);
 });
+async function loadEvents() {
+  const email = document.getElementById("lookupEmail").value;
+
+  if (!email) {
+    alert("Enter email first");
+    return;
+  }
+
+  const res = await fetch(API_BASE + "/alerts-events", {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({ email })
+  });
+
+  const data = await res.json();
+
+  const container = document.getElementById("eventsList");
+  container.innerHTML = "";
+
+  data.events.forEach(e => {
+    const div = document.createElement("div");
+    div.className = "alert-item";
+    div.innerText = `${e.country} triggered at ${e.current_value}`;
+    container.appendChild(div);
+  });
+}
