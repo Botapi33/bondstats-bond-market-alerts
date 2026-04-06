@@ -2,166 +2,468 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Bond Alerts | BondStats</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bond Market Alerts | BondStats</title>
   <style>
+    :root {
+      --bg: #07111f;
+      --bg-soft: #0f1725;
+      --card: #111b2d;
+      --card-2: #16233a;
+      --line: rgba(255,255,255,0.08);
+      --text: #f4f7fb;
+      --muted: #9db0c9;
+      --soft: #7f93ad;
+      --accent: #2563eb;
+      --accent-2: #3b82f6;
+      --green: #22c55e;
+      --red: #ef4444;
+      --amber: #f59e0b;
+      --shadow: 0 14px 40px rgba(0,0,0,0.28);
+      --radius: 18px;
+      --max: 980px;
+    }
+
+    * { box-sizing: border-box; }
+
     body {
-      font-family: Arial;
-      background: #0e1117;
-      color: white;
-      padding: 40px;
-      max-width: 800px;
-      margin: auto;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(59,130,246,0.12), transparent 30%),
+        linear-gradient(180deg, #07111f 0%, #0a1322 100%);
+      color: var(--text);
+      padding: 30px 18px 60px;
+    }
+
+    .wrap {
+      max-width: var(--max);
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin: 0 0 24px;
+      font-size: 54px;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+    }
+
+    .sub {
+      margin: -6px 0 24px;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 15px;
+    }
+
+    .box {
+      background: linear-gradient(180deg, rgba(17,27,45,0.95), rgba(14,23,39,0.98));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    h3 {
+      margin: 0 0 18px;
+      font-size: 22px;
+      letter-spacing: -0.02em;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
     }
 
     input, select, button {
       width: 100%;
-      padding: 10px;
+      padding: 12px 14px;
       margin: 8px 0;
-      border-radius: 6px;
-      border: none;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: #fff;
+      color: #111;
+      font-size: 16px;
+    }
+
+    select {
+      appearance: none;
     }
 
     button {
-      background: #2563eb;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
       color: white;
       cursor: pointer;
+      border: none;
+      font-weight: 700;
     }
 
-    .box {
-      background: #161b22;
-      padding: 20px;
-      border-radius: 10px;
-      margin-bottom: 20px;
+    button:hover {
+      filter: brightness(1.05);
+    }
+
+    .small-btn {
+      width: auto;
+      min-width: 88px;
+      padding: 9px 12px;
+      margin: 0;
+      font-size: 14px;
+      border-radius: 8px;
+    }
+
+    .delete-btn {
+      background: var(--red);
+    }
+
+    .toggle-btn-active {
+      background: var(--amber);
+    }
+
+    .toggle-btn-paused {
+      background: var(--green);
+    }
+
+    .msg {
+      margin-top: 10px;
+      min-height: 24px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .success { color: var(--green); }
+    .error { color: var(--red); }
+    .info { color: var(--accent-2); }
+
+    .alerts-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 14px;
     }
 
     .alert-item {
-      background: #1f2937;
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 6px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      padding: 14px;
+      border-radius: 12px;
     }
 
-    .success { color: #22c55e; }
-    .error { color: #ef4444; }
-    .info { color: #3b82f6; }
+    .alert-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .alert-main {
+      flex: 1 1 380px;
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .alert-sub {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-right: 8px;
+      color: white;
+    }
+
+    .pill-active {
+      background: var(--green);
+    }
+
+    .pill-paused {
+      background: var(--amber);
+      color: #111;
+    }
+
+    .helper {
+      color: var(--soft);
+      font-size: 13px;
+      line-height: 1.6;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 720px) {
+      h1 { font-size: 42px; }
+      .grid-2 { grid-template-columns: 1fr; }
+      .box { padding: 18px; }
+    }
   </style>
 </head>
-
 <body>
+  <div class="wrap">
+    <h1>Bond Market Alerts</h1>
+    <p class="sub">
+      Create, load, pause, reactivate, and delete sovereign bond alerts. Powered by BondStats live data and Supabase functions.
+    </p>
 
-<h1>Bond Market Alerts</h1>
+    <div class="box">
+      <h3>Create Alert</h3>
 
-<div class="box">
-  <h3>Create Alert</h3>
+      <input id="email" placeholder="Email" />
 
-  <input id="email" placeholder="Email" />
-  <input id="country" placeholder="Country (e.g. US)" />
-  <input id="metric" placeholder="Metric (yield)" />
-  <input id="operator" placeholder="gt or lt" />
-  <input id="threshold" placeholder="Threshold (e.g. 5)" />
+      <select id="country">
+        <option value="">Loading countries...</option>
+      </select>
 
-  <button id="createBtn">Create Alert</button>
-  <p id="formMessage"></p>
-</div>
+      <div class="grid-2">
+        <select id="metric">
+          <option value="yield">yield</option>
+          <option value="move">move</option>
+        </select>
 
-<div class="box">
-  <h3>Load Alerts</h3>
+        <select id="operator">
+          <option value="gt">gt</option>
+          <option value="lt">lt</option>
+        </select>
+      </div>
 
-  <input id="lookupEmail" placeholder="Email" />
-  <button id="loadBtn">Load Alerts</button>
+      <div class="grid-2">
+        <input id="threshold" type="number" step="0.01" placeholder="Threshold (e.g. 5)" />
+        <input id="cooldown" type="number" step="1" value="720" placeholder="Cooldown minutes" />
+      </div>
 
-  <p id="loadMessage"></p>
-  <div id="alertsList"></div>
-</div>
+      <button id="createBtn">Create Alert</button>
+      <div id="formMessage" class="msg"></div>
+      <div class="helper">Metric "yield" uses yield values. Metric "move" should use basis points.</div>
+    </div>
 
-<script>
-const API_BASE = "https://ufifxuzrjpcoubsslomd.supabase.co/functions/v1";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmaWZ4dXpyanBjb3Vic3Nsb21kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MzA4NDgsImV4cCI6MjA5MTAwNjg0OH0.xYYLj28EbBtkQZZQtEmFZgVFDB5aPtEpAnMjRRjLUBo";
+    <div class="box">
+      <h3>Load Alerts</h3>
 
-function headers() {
-  return {
-    "Content-Type": "application/json",
-    "apikey": SUPABASE_ANON_KEY,
-    "Authorization": "Bearer " + SUPABASE_ANON_KEY
-  };
-}
+      <input id="lookupEmail" placeholder="Email" />
+      <button id="loadBtn">Load Alerts</button>
 
-function msg(id, text, type) {
-  const el = document.getElementById(id);
-  el.innerText = text;
-  el.className = type;
-}
-async function createAlert() {
-  const payload = {
-    email: document.getElementById("email").value.trim(),
-    country: document.getElementById("country").value.trim(),
-    metric: document.getElementById("metric").value.trim(),
-    operator: document.getElementById("operator").value.trim(),
-    threshold: Number(document.getElementById("threshold").value)
-  };
+      <div id="loadMessage" class="msg"></div>
+      <div id="alertsList" class="alerts-list"></div>
+    </div>
+  </div>
 
-  msg("formMessage", "Creating...", "info");
+  <script>
+    const API_BASE = "https://ufifxuzrjpcoubsslomd.supabase.co/functions/v1";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmaWZ4dXpyanBjb3Vic3Nsb21kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MzA4NDgsImV4cCI6MjA5MTAwNjg0OH0.xYYLj28EbBtkQZZQtEmFZgVFDB5aPtEpAnMjRRjLUBo";
+    const LIVE_JSON_URL = "https://botapi33.github.io/bondstats-global-yields/global_yields.json";
 
-  try {
-    const res = await fetch(API_BASE + "/alerts-create", {
-      method: "POST",
-      headers: headers(),
-      body: JSON.stringify(payload)
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) throw new Error(data.error);
-
-    if (data.duplicate) {
-      msg("formMessage", "Alert already exists", "info");
-    } else {
-      msg("formMessage", "Alert created ✅", "success");
+    function headers() {
+      return {
+        "Content-Type": "application/json",
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": "Bearer " + SUPABASE_ANON_KEY
+      };
     }
 
-  } catch (e) {
-    msg("formMessage", "Error: " + e.message, "error");
-  }
-}
-}
+    function msg(id, text, type = "") {
+      const el = document.getElementById(id);
+      el.innerText = text;
+      el.className = "msg " + type;
+    }
 
-async function loadAlerts() {
-  const email = document.getElementById("lookupEmail").value;
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
 
-  msg("loadMessage", "Loading...", "info");
+    async function loadCountries() {
+      const select = document.getElementById("country");
 
-  try {
-    const res = await fetch(API_BASE + "/alerts-list", {
-      method: "POST",
-      headers: headers(),
-      body: JSON.stringify({ email })
-    });
+      try {
+        const res = await fetch(LIVE_JSON_URL, { cache: "no-store" });
+        const json = await res.json();
+        const source = json?.data || json?.countries || json || {};
 
-    const data = await res.json();
+        const countries = Object.values(source)
+          .filter(x => x && typeof x === "object" && x.label)
+          .map(x => x.label)
+          .sort((a, b) => a.localeCompare(b));
 
-    if (!res.ok) throw new Error(data.error);
+        if (!countries.length) {
+          select.innerHTML = `<option value="">No countries found</option>`;
+          return;
+        }
 
-    const list = document.getElementById("alertsList");
-    list.innerHTML = "";
+        select.innerHTML =
+          countries.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
+      } catch (e) {
+        select.innerHTML = `
+          <option value="US">US</option>
+          <option value="Germany">Germany</option>
+          <option value="Japan">Japan</option>
+          <option value="UK">UK</option>
+          <option value="France">France</option>
+        `;
+      }
+    }
 
-    data.alerts.forEach(a => {
-      const div = document.createElement("div");
-      div.className = "alert-item";
-      div.innerText = `${a.country} | ${a.metric} ${a.operator} ${a.threshold}`;
-      list.appendChild(div);
-    });
+    async function createAlert() {
+      const payload = {
+        email: document.getElementById("email").value.trim(),
+        country: document.getElementById("country").value.trim(),
+        metric: document.getElementById("metric").value.trim(),
+        operator: document.getElementById("operator").value.trim(),
+        threshold: Number(document.getElementById("threshold").value),
+        cooldown_minutes: Number(document.getElementById("cooldown").value || 720)
+      };
 
-    msg("loadMessage", "Loaded " + data.alerts.length + " alerts", "success");
+      if (!payload.email || !payload.country || !payload.metric || !payload.operator || Number.isNaN(payload.threshold)) {
+        msg("formMessage", "Please fill in all fields", "error");
+        return;
+      }
 
-  } catch (e) {
-    msg("loadMessage", "Error: " + e.message, "error");
-  }
-}
+      msg("formMessage", "Creating...", "info");
 
-document.getElementById("createBtn").onclick = createAlert;
-document.getElementById("loadBtn").onclick = loadAlerts;
+      try {
+        const res = await fetch(API_BASE + "/alerts-create", {
+          method: "POST",
+          headers: headers(),
+          body: JSON.stringify(payload)
+        });
 
-</script>
+        const data = await res.json();
 
+        if (!res.ok) throw new Error(data.error || "Create failed");
+
+        if (data.duplicate) {
+          msg("formMessage", "Alert already exists", "info");
+        } else {
+          msg("formMessage", "Alert created ✅", "success");
+        }
+      } catch (e) {
+        msg("formMessage", "Error: " + e.message, "error");
+      }
+    }
+
+    async function loadAlerts() {
+      const email = document.getElementById("lookupEmail").value.trim();
+
+      if (!email) {
+        msg("loadMessage", "Please enter an email", "error");
+        return;
+      }
+
+      msg("loadMessage", "Loading...", "info");
+
+      try {
+        const res = await fetch(API_BASE + "/alerts-list", {
+          method: "POST",
+          headers: headers(),
+          body: JSON.stringify({ email })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || "Load failed");
+
+        const list = document.getElementById("alertsList");
+        list.innerHTML = "";
+
+        if (!data.alerts || !data.alerts.length) {
+          msg("loadMessage", "No alerts found", "info");
+          return;
+        }
+
+        data.alerts.forEach(a => {
+          const div = document.createElement("div");
+          div.className = "alert-item";
+          div.innerHTML = `
+            <div class="alert-row">
+              <div class="alert-main">
+                <span class="pill ${a.is_active ? "pill-active" : "pill-paused"}">${a.is_active ? "Active" : "Paused"}</span>
+                ${escapeHtml(a.country)} | ${escapeHtml(a.metric)} ${escapeHtml(a.operator)} ${escapeHtml(a.threshold)}
+                <div class="alert-sub">
+                  cooldown: ${escapeHtml(a.cooldown_minutes ?? 720)} min
+                  · created: ${a.created_at ? new Date(a.created_at).toLocaleString() : "—"}
+                </div>
+              </div>
+              <div class="actions">
+                <button
+                  class="small-btn ${a.is_active ? "toggle-btn-active" : "toggle-btn-paused"}"
+                  onclick="toggleAlert('${a.id}', ${a.is_active})"
+                >
+                  ${a.is_active ? "Pause" : "Activate"}
+                </button>
+                <button
+                  class="small-btn delete-btn"
+                  onclick="deleteAlert('${a.id}')"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          `;
+          list.appendChild(div);
+        });
+
+        msg("loadMessage", "Loaded " + data.alerts.length + " alerts", "success");
+      } catch (e) {
+        msg("loadMessage", "Error: " + e.message, "error");
+      }
+    }
+
+    async function deleteAlert(id) {
+      try {
+        const res = await fetch(API_BASE + "/alerts-delete", {
+          method: "POST",
+          headers: headers(),
+          body: JSON.stringify({ id })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || "Delete failed");
+
+        msg("loadMessage", "Alert deleted", "success");
+        loadAlerts();
+      } catch (e) {
+        msg("loadMessage", "Error: " + e.message, "error");
+      }
+    }
+
+    async function toggleAlert(id, currentState) {
+      try {
+        const res = await fetch(API_BASE + "/alerts-toggle", {
+          method: "POST",
+          headers: headers(),
+          body: JSON.stringify({ id, is_active: !currentState })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || "Toggle failed");
+
+        msg("loadMessage", "Alert updated", "success");
+        loadAlerts();
+      } catch (e) {
+        msg("loadMessage", "Error: " + e.message, "error");
+      }
+    }
+
+    document.getElementById("createBtn").onclick = createAlert;
+    document.getElementById("loadBtn").onclick = loadAlerts;
+
+    loadCountries();
+  </script>
 </body>
 </html>
