@@ -7,6 +7,13 @@ const supabase = createClient(
 
 const DATA_URL = "https://botapi33.github.io/bondstats-global-yields/global_yields.json";
 
+function normalize(str) {
+  return String(str || "")
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/[^a-z0-9]/g, "");
+}
+
 function passesCondition(metricValue, operator, threshold) {
   if (operator === "gt") return metricValue > threshold;
   if (operator === "lt") return metricValue < threshold;
@@ -18,13 +25,46 @@ function minutesSince(dateString) {
   return (Date.now() - new Date(dateString).getTime()) / 1000 / 60;
 }
 
+function toNumber(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+function countryMatches(alertCountry, market) {
+  const a = normalize(alertCountry);
+  const label = normalize(market.label);
+  const code = normalize(market.code);
+  const country = normalize(market.country);
+  const name = normalize(market.name);
+
+  if (a && (a === label || a === code || a === country || a === name)) return true;
+
+  const aliases = {
+    us: ["unitedstates", "usa", "ustreasury"],
+    unitedstates: ["us", "usa"],
+    uk: ["unitedkingdom", "britain", "greatbritain"],
+    unitedkingdom: ["uk", "britain", "greatbritain"],
+    jp: ["japan"],
+    de: ["germany"],
+    fr: ["france"]
+  };
+
+  const aliasList = aliases[a] || [];
+  return [label, code, country, name].some(v => aliasList.includes(v));
+}
+
 async function run() {
+  console.log("Starting alert check...");
+
   const dataRes = await fetch(DATA_URL);
   if (!dataRes.ok) throw new Error(`Data fetch failed: ${dataRes.status}`);
 
   const json = await dataRes.json();
-  const source = json?.data || {};
-  const markets = Object.values(source);
+  const source = json?.data || json?.countries || json || {};
+  const markets = Object.values(source).filter(x => x && typeof x === "object");
+
+  console.log("Markets loaded:", markets.length);
+  console.log("Sample market:", markets[0]);
 
   const alertsRes = await supabase
     .from("alerts")
@@ -33,23 +73,58 @@ async function run() {
 
   if (alertsRes.error) throw alertsRes.error;
 
-  for (const alert of alertsRes.data) {
-    const market = markets.find(m => m.label === alert.country);
-    if (!market) continue;
+  const alerts = alertsRes.data || [];
+  console.log("Active alerts loaded:", alerts.length);
 
-    const metricValue =
-      alert.metric === "yield"
-        ? Number(market.value)
-        : Number(market.change) * 100;
+  for (const alert of alerts) {
+    console.log("Checking alert:", {
+      id: alert.id,
+      country: alert.country,
+      metric: alert.metric,
+      operator: alert.operator,
+      threshold: alert.threshold
+    });
 
-    const shouldTrigger = passesCondition(
-      metricValue,
-      alert.operator,
-      Number(alert.threshold)
-    );
+    const market = markets.find(m => countryMatches(alert.country, m));
 
+    if (!market) {
+      console.log("No market match for alert country:", alert.country);
+      continue;
+    }
+
+    console.log("Matched market:", {
+      label: market.label,
+      code: market.code,
+      value: market.value,
+      change: market.change
+    });
+
+    let metricValue = null;
+
+    if (alert.metric === "yield") {
+      metricValue = toNumber(market.value);
+    } else if (alert.metric === "move") {
+      const rawChange = toNumber(market.change);
+      metricValue = rawChange !== null ? rawChange * 100 : null;
+    }
+
+    if (metricValue === null) {
+      console.log("Metric value is null for alert:", alert.id);
+      continue;
+    }
+
+    const threshold = Number(alert.threshold);
+    const shouldTrigger = passesCondition(metricValue, alert.operator, threshold);
     const cooldownPassed =
       minutesSince(alert.last_triggered_at) >= (alert.cooldown_minutes || 720);
+
+    console.log("Decision:", {
+      metricValue,
+      threshold,
+      shouldTrigger,
+      cooldownPassed,
+      last_triggered_at: alert.last_triggered_at
+    });
 
     if (!shouldTrigger || !cooldownPassed) continue;
 
@@ -74,12 +149,14 @@ async function run() {
       });
 
     if (eventRes.error) throw eventRes.error;
+
+    console.log("Triggered alert:", alert.id);
   }
 
   console.log("Alert check complete");
 }
 
 run().catch(err => {
-  console.error(err);
+  console.error("Runner failed:", err);
   process.exit(1);
 });
