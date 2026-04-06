@@ -14,9 +14,9 @@ function normalize(str) {
     .replace(/[^a-z0-9]/g, "");
 }
 
-function passesCondition(metricValue, operator, threshold) {
-  if (operator === "gt") return metricValue > threshold;
-  if (operator === "lt") return metricValue < threshold;
+function passesCondition(value, operator, threshold) {
+  if (operator === "gt") return value > threshold;
+  if (operator === "lt") return value < threshold;
   return false;
 }
 
@@ -32,26 +32,63 @@ function toNumber(value) {
 
 function countryMatches(alertCountry, market) {
   const a = normalize(alertCountry);
-  const label = normalize(market.label);
-  const code = normalize(market.code);
-  const country = normalize(market.country);
-  const name = normalize(market.name);
 
-  return a === label || a === code || a === country || a === name;
+  const candidates = [
+    market?.label,
+    market?.code,
+    market?.country,
+    market?.name,
+    market?.iso,
+    market?.iso2,
+    market?.iso3
+  ]
+    .filter(Boolean)
+    .map(normalize);
+
+  if (candidates.includes(a)) return true;
+
+  const aliases = {
+    us: ["unitedstates", "usa"],
+    unitedstates: ["us", "usa"],
+    usa: ["us", "unitedstates"],
+    uk: ["unitedkingdom", "greatbritain", "britain"],
+    unitedkingdom: ["uk", "greatbritain", "britain"],
+    greatbritain: ["uk", "unitedkingdom"],
+    de: ["germany"],
+    germany: ["de"],
+    fr: ["france"],
+    france: ["fr"],
+    jp: ["japan"],
+    japan: ["jp"]
+  };
+
+  const aliasList = aliases[a] || [];
+  return candidates.some(c => aliasList.includes(c));
 }
 
-function buildEmailHtml({ country, metric, operator, threshold, currentValue }) {
+function buildEmailHtml(alert, currentValue) {
   return `
-    <h2>BondStats Alert</h2>
-    <p><strong>${country}</strong></p>
-    <p>${metric} ${operator} ${threshold}</p>
-    <p>Current value: ${currentValue}</p>
+    <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111;">
+      <h2>BondStats Alert Triggered</h2>
+      <p>Your bond alert condition has been met.</p>
+      <table cellpadding="8" cellspacing="0" border="0">
+        <tr><td><strong>Country</strong></td><td>${alert.country}</td></tr>
+        <tr><td><strong>Metric</strong></td><td>${alert.metric}</td></tr>
+        <tr><td><strong>Condition</strong></td><td>${alert.operator === "gt" ? ">" : "<"} ${alert.threshold}</td></tr>
+        <tr><td><strong>Current Value</strong></td><td>${currentValue}</td></tr>
+      </table>
+      <p>Open BondStats to review your dashboard and alerts.</p>
+    </div>
   `;
 }
 
 async function sendMailgunEmail(to, subject, html) {
   const domain = process.env.MAILGUN_DOMAIN;
   const apiKey = process.env.MAILGUN_API_KEY;
+
+  if (!domain || !apiKey) {
+    throw new Error("Missing MAILGUN_DOMAIN or MAILGUN_API_KEY");
+  }
 
   const form = new URLSearchParams();
   form.append("from", `BondStats Alerts <alerts@${domain}>`);
@@ -61,7 +98,7 @@ async function sendMailgunEmail(to, subject, html) {
 
   const auth = Buffer.from(`api:${apiKey}`).toString("base64");
 
-  const res = await fetch(`https://api.mailgun.net/v3/${domain}/messages`, {
+  const response = await fetch(`https://api.mailgun.net/v3/${domain}/messages`, {
     method: "POST",
     headers: {
       Authorization: `Basic ${auth}`,
@@ -70,75 +107,155 @@ async function sendMailgunEmail(to, subject, html) {
     body: form
   });
 
-  const text = await res.text();
-  console.log("Mailgun:", text);
+  const text = await response.text();
+  console.log("Mailgun response:", text);
+
+  if (!response.ok) {
+    throw new Error(`Mailgun error: ${text}`);
+  }
+}
+
+async function loadMarkets() {
+  const dataRes = await fetch(DATA_URL);
+  if (!dataRes.ok) {
+    throw new Error(`Data fetch failed: ${dataRes.status}`);
+  }
+
+  const json = await dataRes.json();
+  const source = json?.data || json?.countries || json || {};
+
+  const markets = Object.values(source).filter(
+    x => x && typeof x === "object"
+  );
+
+  console.log("Markets loaded:", markets.length);
+  if (markets.length) {
+    console.log("Sample market:", markets[0]);
+  }
+
+  return markets;
+}
+
+async function loadAlerts() {
+  const alertsRes = await supabase
+    .from("alerts")
+    .select("*, users(email)")
+    .eq("is_active", true);
+
+  if (alertsRes.error) throw alertsRes.error;
+
+  const alerts = alertsRes.data || [];
+  console.log("Active alerts loaded:", alerts.length);
+  return alerts;
+}
+
+async function markTriggered(alertId) {
+  const updateRes = await supabase
+    .from("alerts")
+    .update({ last_triggered_at: new Date().toISOString() })
+    .eq("id", alertId);
+
+  if (updateRes.error) throw updateRes.error;
+}
+
+async function insertEvent(alert, currentValue) {
+  const eventRes = await supabase
+    .from("alert_events")
+    .insert({
+      alert_id: alert.id,
+      user_id: alert.user_id,
+      country: alert.country,
+      metric: alert.metric,
+      operator: alert.operator,
+      threshold: alert.threshold,
+      current_value: currentValue,
+      message: `${alert.country} ${alert.metric} ${alert.operator} ${alert.threshold} triggered at ${currentValue}`
+    });
+
+  if (eventRes.error) throw eventRes.error;
 }
 
 async function run() {
   console.log("Starting alert check...");
 
-  const dataRes = await fetch(DATA_URL);
-  const json = await dataRes.json();
-  const markets = Object.values(json);
-
-  const { data: alerts } = await supabase
-    .from("alerts")
-    .select("*, users(email)")
-    .eq("is_active", true);
+  const markets = await loadMarkets();
+  const alerts = await loadAlerts();
 
   for (const alert of alerts) {
+    console.log("Checking alert:", {
+      id: alert.id,
+      country: alert.country,
+      metric: alert.metric,
+      operator: alert.operator,
+      threshold: alert.threshold,
+      last_triggered_at: alert.last_triggered_at
+    });
+
     const market = markets.find(m => countryMatches(alert.country, m));
-    if (!market) continue;
 
-    const metricValue = toNumber(market.value);
-    if (metricValue === null) continue;
+    if (!market) {
+      console.log("No market match for alert country:", alert.country);
+      continue;
+    }
 
-    const shouldTrigger = passesCondition(
+    let metricValue = null;
+
+    if (alert.metric === "yield") {
+      metricValue = toNumber(market.value);
+    } else if (alert.metric === "move") {
+      const rawChange = toNumber(market.change);
+      metricValue = rawChange !== null ? rawChange * 100 : null;
+    } else {
+      console.log("Unsupported metric:", alert.metric);
+      continue;
+    }
+
+    if (metricValue === null) {
+      console.log("Metric value invalid for alert:", alert.id, "market:", market);
+      continue;
+    }
+
+    const threshold = Number(alert.threshold);
+    const shouldTrigger = passesCondition(metricValue, alert.operator, threshold);
+    const cooldownMinutes = Number(alert.cooldown_minutes || 720);
+    const cooldownPassed = minutesSince(alert.last_triggered_at) >= cooldownMinutes;
+
+    console.log("Decision:", {
       metricValue,
-      alert.operator,
-      Number(alert.threshold)
-    );
-
-    const cooldownPassed =
-      minutesSince(alert.last_triggered_at) >= alert.cooldown_minutes;
+      threshold,
+      shouldTrigger,
+      cooldownPassed
+    });
 
     if (!shouldTrigger || !cooldownPassed) continue;
 
     console.log("🚨 TRIGGER:", alert.id);
 
-    // Update DB
-    await supabase
-      .from("alerts")
-      .update({ last_triggered_at: new Date().toISOString() })
-      .eq("id", alert.id);
-
-    // Insert event
-    await supabase.from("alert_events").insert({
-      alert_id: alert.id,
-      user_id: alert.user_id,
-      message: "Triggered"
-    });
+    await markTriggered(alert.id);
+    await insertEvent(alert, metricValue);
 
     const email = alert.users?.email;
-    if (!email) continue;
+    if (!email) {
+      console.log("No email found for alert:", alert.id);
+      continue;
+    }
 
-    await sendMailgunEmail(
-      email,
-      `Bond Alert: ${alert.country}`,
-      buildEmailHtml({
-        country: alert.country,
-        metric: alert.metric,
-        operator: alert.operator,
-        threshold: alert.threshold,
-        currentValue: metricValue
-      })
-    );
+    try {
+      await sendMailgunEmail(
+        email,
+        `BondStats Alert: ${alert.country} ${alert.metric} triggered`,
+        buildEmailHtml(alert, metricValue)
+      );
+      console.log("Email sent for alert", alert.id, "to", email);
+    } catch (emailError) {
+      console.error("Email send failed for alert", alert.id, emailError);
+    }
   }
 
-  console.log("Done");
+  console.log("Alert check complete");
 }
 
 run().catch(err => {
-  console.error(err);
+  console.error("Runner failed:", err);
   process.exit(1);
 });
