@@ -5,269 +5,308 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Bond Market Alerts | BondStats</title>
   <style>
-    :root {
-      --bg: #07111f;
-      --bg-soft: #0f1725;
-      --card: #111b2d;
-      --card-2: #16233a;
-      --line: rgba(255,255,255,0.08);
-      --text: #f4f7fb;
-      --muted: #9db0c9;
-      --soft: #7f93ad;
-      --accent: #2563eb;
-      --accent-2: #3b82f6;
-      --green: #22c55e;
-      --red: #ef4444;
-      --amber: #f59e0b;
-      --shadow: 0 14px 40px rgba(0,0,0,0.28);
-      --radius: 18px;
-      --max: 980px;
-    }
-
-    * { box-sizing: border-box; }
-
     body {
-      margin: 0;
       font-family: Arial, sans-serif;
-      background:
-        radial-gradient(circle at top left, rgba(59,130,246,0.12), transparent 30%),
-        linear-gradient(180deg, #07111f 0%, #0a1322 100%);
-      color: var(--text);
-      padding: 30px 18px 60px;
-    }
-
-    .wrap {
-      max-width: var(--max);
-      margin: 0 auto;
+      background: #0b1220;
+      color: white;
+      padding: 40px;
+      max-width: 1100px;
+      margin: auto;
     }
 
     h1 {
-      margin: 0 0 24px;
-      font-size: 54px;
-      line-height: 1.05;
-      letter-spacing: -0.03em;
+      font-size: 56px;
+      margin-bottom: 10px;
     }
 
-    .sub {
-      margin: -6px 0 24px;
-      color: var(--muted);
-      line-height: 1.7;
-      font-size: 15px;
+    .subtext {
+      color: #d1d5db;
+      font-size: 18px;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .notice {
+      background: rgba(59, 130, 246, 0.12);
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      color: #dbeafe;
+      padding: 14px 16px;
+      border-radius: 12px;
+      margin-bottom: 22px;
+      line-height: 1.5;
     }
 
     .box {
-      background: linear-gradient(180deg, rgba(17,27,45,0.95), rgba(14,23,39,0.98));
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(17,24,39,0.95), rgba(15,23,42,0.95));
+      border: 1px solid rgba(255,255,255,0.08);
       padding: 24px;
-      margin-bottom: 22px;
-      box-shadow: var(--shadow);
+      border-radius: 18px;
+      margin-bottom: 26px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
     }
 
     h3 {
-      margin: 0 0 18px;
-      font-size: 22px;
-      letter-spacing: -0.02em;
+      font-size: 24px;
+      margin-top: 0;
+      margin-bottom: 18px;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 14px 16px;
+      margin: 8px 0;
+      border-radius: 12px;
+      border: none;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+
+    button {
+      background: linear-gradient(90deg, #2563eb, #3b82f6);
+      color: white;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    button:hover {
+      opacity: 0.96;
     }
 
     .grid-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    input, select, button {
-      width: 100%;
-      padding: 12px 14px;
-      margin: 8px 0;
-      border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: #fff;
-      color: #111;
-      font-size: 16px;
-    }
-
-    select {
-      appearance: none;
-    }
-
-    button {
-      background: linear-gradient(90deg, var(--accent), var(--accent-2));
-      color: white;
-      cursor: pointer;
-      border: none;
-      font-weight: 700;
-    }
-
-    button:hover {
-      filter: brightness(1.05);
-    }
-
-    .small-btn {
-      width: auto;
-      min-width: 88px;
-      padding: 9px 12px;
-      margin: 0;
-      font-size: 14px;
-      border-radius: 8px;
-    }
-
-    .delete-btn {
-      background: var(--red);
-    }
-
-    .toggle-btn-active {
-      background: var(--amber);
-    }
-
-    .toggle-btn-paused {
-      background: var(--green);
+      gap: 14px;
     }
 
     .msg {
-      margin-top: 10px;
-      min-height: 24px;
-      font-size: 15px;
+      margin-top: 12px;
       font-weight: 700;
-    }
-
-    .success { color: var(--green); }
-    .error { color: var(--red); }
-    .info { color: var(--accent-2); }
-
-    .alerts-list {
-      display: grid;
-      gap: 12px;
-      margin-top: 14px;
-    }
-
-    .alert-item {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.06);
-      padding: 14px;
-      border-radius: 12px;
-    }
-
-    .alert-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 14px;
-      flex-wrap: wrap;
-    }
-
-    .alert-main {
-      flex: 1 1 380px;
-      color: var(--text);
-      font-size: 16px;
-      font-weight: 700;
-    }
-
-    .alert-sub {
-      margin-top: 6px;
-      color: var(--muted);
-      font-size: 13px;
       line-height: 1.5;
     }
 
-    .actions {
+    .helper {
+      color: #cbd5e1;
+      font-size: 14px;
+      margin-top: 10px;
+      line-height: 1.5;
+    }
+
+    .alerts-list {
+      margin-top: 14px;
+    }
+
+    .alert-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.06);
+      padding: 16px;
+      margin: 12px 0;
+      border-radius: 14px;
       display: flex;
-      gap: 8px;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .alert-left {
+      flex: 1;
+    }
+
+    .alert-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .alert-meta {
+      color: #cbd5e1;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .alert-actions {
+      display: flex;
+      gap: 10px;
       flex-wrap: wrap;
     }
 
-    .pill {
+    .btn-secondary {
+      background: #f59e0b;
+      color: white;
+      width: auto;
+      min-width: 110px;
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      color: white;
+      width: auto;
+      min-width: 110px;
+    }
+
+    .btn-success {
+      background: #22c55e;
+      color: white;
+      width: auto;
+      min-width: 110px;
+    }
+
+    .badge {
       display: inline-block;
-      padding: 4px 10px;
+      padding: 6px 12px;
       border-radius: 999px;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 700;
-      margin-right: 8px;
+      margin-right: 10px;
+    }
+
+    .badge-active {
+      background: #22c55e;
       color: white;
     }
 
-    .pill-active {
-      background: var(--green);
+    .badge-paused {
+      background: #64748b;
+      color: white;
     }
 
-    .pill-paused {
-      background: var(--amber);
-      color: #111;
+    .event-card {
+      background: rgba(255,255,255,0.05);
+      padding: 14px;
+      margin: 10px 0;
+      border-radius: 12px;
+      border-left: 4px solid #22c55e;
     }
 
-    .helper {
-      color: var(--soft);
-      font-size: 13px;
-      line-height: 1.6;
-      margin-top: 8px;
+    .success { color: #4ade80; }
+    .error { color: #f87171; }
+    .info { color: #60a5fa; }
+
+    .upgrade-box {
+      margin-top: 18px;
+      padding: 16px;
+      border-radius: 14px;
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.25);
     }
 
-    @media (max-width: 720px) {
-      h1 { font-size: 42px; }
-      .grid-2 { grid-template-columns: 1fr; }
-      .box { padding: 18px; }
+    .upgrade-title {
+      font-weight: 700;
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .upgrade-text {
+      color: #fde68a;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    .small-button {
+      width: auto;
+      display: inline-block;
+      padding: 12px 16px;
+    }
+
+    @media (max-width: 760px) {
+      h1 {
+        font-size: 40px;
+      }
+
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+
+      .alert-card {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .alert-actions {
+        width: 100%;
+      }
+
+      .alert-actions button {
+        width: 100%;
+      }
     }
   </style>
 </head>
+
 <body>
-  <div class="wrap">
-    <h1>Bond Market Alerts</h1>
-    <p class="sub">
-      Create, load, pause, reactivate, and delete sovereign bond alerts. Powered by BondStats live data and Supabase functions.
-    </p>
 
-    <div class="box">
-      <h3>Create Alert</h3>
+  <h1>Bond Market Alerts</h1>
+  <p class="subtext">
+    Create, load, pause, reactivate, and delete sovereign bond alerts.
+    Powered by BondStats live data and Supabase functions.
+  </p>
 
-      <input id="email" placeholder="Email" />
+  <div class="notice">
+    Alerts are evaluated using the latest available market data.
+    Some countries update daily (for example the United States), while others update monthly.
+    This means alert timing depends on the update frequency of the selected market.
+  </div>
 
-      <select id="country">
-        <option value="">Loading countries...</option>
-      </select>
+  <div class="box">
+    <h3>Create Alert</h3>
 
-      <div class="grid-2">
-        <select id="metric">
-          <option value="yield">yield</option>
-          <option value="move">move</option>
-        </select>
+    <input id="email" placeholder="Email" />
+    <input id="country" placeholder="Country (e.g. United States)" />
 
-        <select id="operator">
-          <option value="gt">gt</option>
-          <option value="lt">lt</option>
-        </select>
-      </div>
-
-      <div class="grid-2">
-        <input id="threshold" type="number" step="0.01" placeholder="Threshold (e.g. 5)" />
-        <input id="cooldown" type="number" step="1" value="720" placeholder="Cooldown minutes" />
-      </div>
-
-      <button id="createBtn">Create Alert</button>
-      <div id="formMessage" class="msg"></div>
-      <div class="helper">Metric "yield" uses yield values. Metric "move" should use basis points.</div>
+    <div class="grid-2">
+      <input id="metric" placeholder="Metric (yield or move)" />
+      <input id="operator" placeholder="gt or lt" />
     </div>
 
-    <div class="box">
-      <h3>Load Alerts</h3>
+    <div class="grid-2">
+      <input id="threshold" type="number" step="0.01" placeholder="Threshold (e.g. 4.0)" />
+      <input id="cooldown" type="number" step="1" value="720" placeholder="Cooldown minutes" />
+    </div>
 
-      <input id="lookupEmail" placeholder="Email" />
-      <button id="loadBtn">Load Alerts</button>
+    <button id="createBtn">Create Alert</button>
+    <div id="formMessage" class="msg"></div>
 
-      <div id="loadMessage" class="msg"></div>
-      <div id="alertsList" class="alerts-list"></div>
+    <div class="helper">
+      Free plan: 1 active alert. Premium unlocks unlimited alerts and email notifications.
+    </div>
+
+    <div class="helper">
+      Alerts are triggered based on the latest available observation. Some markets update daily, while others are reported monthly.
+    </div>
+
+    <div class="helper">
+      Metric "yield" uses yield values. Metric "move" should use basis points.
+    </div>
+
+    <div class="upgrade-box">
+      <div class="upgrade-title">Upgrade to Premium</div>
+      <div class="upgrade-text">
+        Unlock unlimited alerts, email notifications, and future faster update checks.
+      </div>
+      <button class="small-button" onclick="showUpgrade()">Upgrade to Premium</button>
     </div>
   </div>
+
   <div class="box">
-  <h3>Triggered Alerts</h3>
+    <h3>Load Alerts</h3>
 
-  <button onclick="loadEvents()">Load Events</button>
+    <input id="lookupEmail" placeholder="Email" />
+    <button id="loadBtn">Load Alerts</button>
 
-  <div id="eventsList" class="alerts-list"></div>
-</div>
+    <div id="loadMessage" class="msg"></div>
+    <div id="alertsList" class="alerts-list"></div>
+  </div>
+
+  <div class="box">
+    <h3>Triggered Alerts</h3>
+
+    <button id="eventsBtn">Load Events</button>
+    <div id="eventsMessage" class="msg"></div>
+    <div id="eventsList" class="alerts-list"></div>
+  </div>
 
   <script>
     const API_BASE = "https://ufifxuzrjpcoubsslomd.supabase.co/functions/v1";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmaWZ4dXpyanBjb3Vic3Nsb21kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MzA4NDgsImV4cCI6MjA5MTAwNjg0OH0.xYYLj28EbBtkQZZQtEmFZgVFDB5aPtEpAnMjRRjLUBo";
+    const SUPABASE_ANON_KEY = "DEIN_ANON_KEY_HIER";
     const LIVE_JSON_URL = "https://botapi33.github.io/bondstats-global-yields/global_yields.json";
 
     function headers() {
@@ -284,44 +323,17 @@
       el.className = "msg " + type;
     }
 
-    function escapeHtml(str) {
-      return String(str)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+    function formatDate(value) {
+      if (!value) return "n/a";
+      try {
+        return new Date(value).toLocaleString();
+      } catch {
+        return value;
+      }
     }
 
-    async function loadCountries() {
-      const select = document.getElementById("country");
-
-      try {
-        const res = await fetch(LIVE_JSON_URL, { cache: "no-store" });
-        const json = await res.json();
-        const source = json?.data || json?.countries || json || {};
-
-        const countries = Object.values(source)
-          .filter(x => x && typeof x === "object" && x.label)
-          .map(x => x.label)
-          .sort((a, b) => a.localeCompare(b));
-
-        if (!countries.length) {
-          select.innerHTML = `<option value="">No countries found</option>`;
-          return;
-        }
-
-        select.innerHTML =
-          countries.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
-      } catch (e) {
-        select.innerHTML = `
-          <option value="US">US</option>
-          <option value="Germany">Germany</option>
-          <option value="Japan">Japan</option>
-          <option value="UK">UK</option>
-          <option value="France">France</option>
-        `;
-      }
+    function showUpgrade() {
+      alert("Premium checkout coming next. For now, Premium can be activated manually.");
     }
 
     async function createAlert() {
@@ -334,11 +346,6 @@
         cooldown_minutes: Number(document.getElementById("cooldown").value || 720)
       };
 
-      if (!payload.email || !payload.country || !payload.metric || !payload.operator || Number.isNaN(payload.threshold)) {
-        msg("formMessage", "Please fill in all fields", "error");
-        return;
-      }
-
       msg("formMessage", "Creating...", "info");
 
       try {
@@ -350,13 +357,11 @@
 
         const data = await res.json();
 
-        if (!res.ok) throw new Error(data.error || "Create failed");
-
-        if (data.duplicate) {
-          msg("formMessage", "Alert already exists", "info");
-        } else {
-          msg("formMessage", "Alert created ✅", "success");
+        if (!res.ok) {
+          throw new Error(data.error || "Create failed");
         }
+
+        msg("formMessage", "Alert created ✅", "success");
       } catch (e) {
         msg("formMessage", "Error: " + e.message, "error");
       }
@@ -364,11 +369,8 @@
 
     async function loadAlerts() {
       const email = document.getElementById("lookupEmail").value.trim();
-
-      if (!email) {
-        msg("loadMessage", "Please enter an email", "error");
-        return;
-      }
+      const list = document.getElementById("alertsList");
+      list.innerHTML = "";
 
       msg("loadMessage", "Loading...", "info");
 
@@ -381,49 +383,74 @@
 
         const data = await res.json();
 
-        if (!res.ok) throw new Error(data.error || "Load failed");
+        if (!res.ok) {
+          throw new Error(data.error || "Load failed");
+        }
 
-        const list = document.getElementById("alertsList");
-        list.innerHTML = "";
+        const alerts = data.alerts || [];
 
-        if (!data.alerts || !data.alerts.length) {
+        if (!alerts.length) {
           msg("loadMessage", "No alerts found", "info");
           return;
         }
 
-        data.alerts.forEach(a => {
-          const div = document.createElement("div");
-          div.className = "alert-item";
-          div.innerHTML = `
-            <div class="alert-row">
-              <div class="alert-main">
-                <span class="pill ${a.is_active ? "pill-active" : "pill-paused"}">${a.is_active ? "Active" : "Paused"}</span>
-                ${escapeHtml(a.country)} | ${escapeHtml(a.metric)} ${escapeHtml(a.operator)} ${escapeHtml(a.threshold)}
-                <div class="alert-sub">
-                  cooldown: ${escapeHtml(a.cooldown_minutes ?? 720)} min
-                  · created: ${a.created_at ? new Date(a.created_at).toLocaleString() : "—"}
-                </div>
+        msg("loadMessage", `Loaded ${alerts.length} alert${alerts.length === 1 ? "" : "s"}`, "success");
+
+        alerts.forEach(a => {
+          const card = document.createElement("div");
+          card.className = "alert-card";
+
+          const isActive = !!a.is_active;
+
+          card.innerHTML = `
+            <div class="alert-left">
+              <div class="alert-title">
+                <span class="badge ${isActive ? "badge-active" : "badge-paused"}">
+                  ${isActive ? "Active" : "Paused"}
+                </span>
+                ${a.country} | ${a.metric} ${a.operator} ${a.threshold}
               </div>
-              <div class="actions">
-                <button
-                  class="small-btn ${a.is_active ? "toggle-btn-active" : "toggle-btn-paused"}"
-                  onclick="toggleAlert('${a.id}', ${a.is_active})"
-                >
-                  ${a.is_active ? "Pause" : "Activate"}
-                </button>
-                <button
-                  class="small-btn delete-btn"
-                  onclick="deleteAlert('${a.id}')"
-                >
-                  Delete
-                </button>
+              <div class="alert-meta">
+                cooldown: ${a.cooldown_minutes || 720} min •
+                created: ${formatDate(a.created_at)}<br>
+                last triggered: ${a.last_triggered_at ? formatDate(a.last_triggered_at) : "never"}
               </div>
             </div>
+            <div class="alert-actions">
+              ${
+                isActive
+                  ? `<button class="btn-secondary" onclick="toggleAlert('${a.id}', false)">Pause</button>`
+                  : `<button class="btn-success" onclick="toggleAlert('${a.id}', true)">Reactivate</button>`
+              }
+              <button class="btn-danger" onclick="deleteAlert('${a.id}')">Delete</button>
+            </div>
           `;
-          list.appendChild(div);
+
+          list.appendChild(card);
+        });
+      } catch (e) {
+        msg("loadMessage", "Error: " + e.message, "error");
+      }
+    }
+
+    async function toggleAlert(id, isActive) {
+      try {
+        const endpoint = isActive ? "/alerts-reactivate" : "/alerts-pause";
+
+        const res = await fetch(API_BASE + endpoint, {
+          method: "POST",
+          headers: headers(),
+          body: JSON.stringify({ id })
         });
 
-        msg("loadMessage", "Loaded " + data.alerts.length + " alerts", "success");
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || "Update failed");
+        }
+
+        msg("loadMessage", isActive ? "Alert reactivated ✅" : "Alert paused ✅", "success");
+        await loadAlerts();
       } catch (e) {
         msg("loadMessage", "Error: " + e.message, "error");
       }
@@ -439,38 +466,64 @@
 
         const data = await res.json();
 
-        if (!res.ok) throw new Error(data.error || "Delete failed");
+        if (!res.ok) {
+          throw new Error(data.error || "Delete failed");
+        }
 
-        msg("loadMessage", "Alert deleted", "success");
-        loadAlerts();
+        msg("loadMessage", "Alert deleted ✅", "success");
+        await loadAlerts();
       } catch (e) {
         msg("loadMessage", "Error: " + e.message, "error");
       }
     }
 
-    async function toggleAlert(id, currentState) {
+    async function loadEvents() {
+      const email = document.getElementById("lookupEmail").value.trim();
+      const container = document.getElementById("eventsList");
+      container.innerHTML = "";
+
+      msg("eventsMessage", "Loading...", "info");
+
       try {
-        const res = await fetch(API_BASE + "/alerts-toggle", {
+        const res = await fetch(API_BASE + "/alerts-events", {
           method: "POST",
           headers: headers(),
-          body: JSON.stringify({ id, is_active: !currentState })
+          body: JSON.stringify({ email })
         });
 
         const data = await res.json();
 
-        if (!res.ok) throw new Error(data.error || "Toggle failed");
+        if (!res.ok) {
+          throw new Error(data.error || "Load failed");
+        }
 
-        msg("loadMessage", "Alert updated", "success");
-        loadAlerts();
+        if (!data.events || !data.events.length) {
+          msg("eventsMessage", "No triggered events yet.", "info");
+          return;
+        }
+
+        msg("eventsMessage", `Loaded ${data.events.length} event${data.events.length === 1 ? "" : "s"}`, "success");
+
+        data.events.forEach(e => {
+          const div = document.createElement("div");
+          div.className = "event-card";
+          div.innerHTML = `
+            <b>${e.country}</b> triggered<br>
+            Metric: ${e.metric}<br>
+            Condition: ${e.operator} ${e.threshold}<br>
+            Current value: ${e.current_value ?? "n/a"}<br>
+            Time: ${formatDate(e.created_at)}
+          `;
+          container.appendChild(div);
+        });
       } catch (e) {
-        msg("loadMessage", "Error: " + e.message, "error");
+        msg("eventsMessage", "Error: " + e.message, "error");
       }
     }
 
     document.getElementById("createBtn").onclick = createAlert;
     document.getElementById("loadBtn").onclick = loadAlerts;
-
-    loadCountries();
+    document.getElementById("eventsBtn").onclick = loadEvents;
   </script>
 </body>
 </html>
