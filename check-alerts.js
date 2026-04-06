@@ -37,152 +37,108 @@ function countryMatches(alertCountry, market) {
   const country = normalize(market.country);
   const name = normalize(market.name);
 
-  if (a && (a === label || a === code || a === country || a === name)) return true;
+  return a === label || a === code || a === country || a === name;
+}
 
-  const aliases = {
-    us: ["unitedstates", "usa", "ustreasury"],
-    unitedstates: ["us", "usa"],
-    uk: ["unitedkingdom", "britain", "greatbritain"],
-    unitedkingdom: ["uk", "britain", "greatbritain"],
-    jp: ["japan"],
-    de: ["germany"],
-    fr: ["france"]
-  };
+function buildEmailHtml({ country, metric, operator, threshold, currentValue }) {
+  return `
+    <h2>BondStats Alert</h2>
+    <p><strong>${country}</strong></p>
+    <p>${metric} ${operator} ${threshold}</p>
+    <p>Current value: ${currentValue}</p>
+  `;
+}
 
-  const aliasList = aliases[a] || [];
-  return [label, code, country, name].some(v => aliasList.includes(v));
+async function sendMailgunEmail(to, subject, html) {
+  const domain = process.env.MAILGUN_DOMAIN;
+  const apiKey = process.env.MAILGUN_API_KEY;
+
+  const form = new URLSearchParams();
+  form.append("from", `BondStats Alerts <alerts@${domain}>`);
+  form.append("to", to);
+  form.append("subject", subject);
+  form.append("html", html);
+
+  const auth = Buffer.from(`api:${apiKey}`).toString("base64");
+
+  const res = await fetch(`https://api.mailgun.net/v3/${domain}/messages`, {
+    method: "POST",
+    headers: {
+      Authorization: `Basic ${auth}`,
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: form
+  });
+
+  const text = await res.text();
+  console.log("Mailgun:", text);
 }
 
 async function run() {
   console.log("Starting alert check...");
 
   const dataRes = await fetch(DATA_URL);
-  if (!dataRes.ok) throw new Error(`Data fetch failed: ${dataRes.status}`);
-
   const json = await dataRes.json();
-  const source = json?.data || json?.countries || json || {};
-  const markets = Object.values(source).filter(x => x && typeof x === "object");
+  const markets = Object.values(json);
 
-  console.log("Markets loaded:", markets.length);
-  console.log("Sample market:", markets[0]);
-
-  const alertsRes = await supabase
+  const { data: alerts } = await supabase
     .from("alerts")
-    .select("*")
+    .select("*, users(email)")
     .eq("is_active", true);
 
-  if (alertsRes.error) throw alertsRes.error;
-
-  const alerts = alertsRes.data || [];
-  console.log("Active alerts loaded:", alerts.length);
-
   for (const alert of alerts) {
-    console.log("Checking alert:", {
-      id: alert.id,
-      country: alert.country,
-      metric: alert.metric,
-      operator: alert.operator,
-      threshold: alert.threshold
-    });
-
     const market = markets.find(m => countryMatches(alert.country, m));
+    if (!market) continue;
 
-    if (!market) {
-      console.log("No market match for alert country:", alert.country);
-      continue;
-    }
+    const metricValue = toNumber(market.value);
+    if (metricValue === null) continue;
 
-    console.log("Matched market:", {
-      label: market.label,
-      code: market.code,
-      value: market.value,
-      change: market.change
-    });
-
-    let metricValue = null;
-
-    if (alert.metric === "yield") {
-      metricValue = toNumber(market.value);
-    } else if (alert.metric === "move") {
-      const rawChange = toNumber(market.change);
-      metricValue = rawChange !== null ? rawChange * 100 : null;
-    }
-
-    if (metricValue === null) {
-      console.log("Metric value is null for alert:", alert.id);
-      continue;
-    }
-
-    const threshold = Number(alert.threshold);
-    const shouldTrigger = passesCondition(metricValue, alert.operator, threshold);
-    const cooldownPassed =
-      minutesSince(alert.last_triggered_at) >= (alert.cooldown_minutes || 720);
-
-    console.log("Decision:", {
+    const shouldTrigger = passesCondition(
       metricValue,
-      threshold,
-      shouldTrigger,
-      cooldownPassed,
-      last_triggered_at: alert.last_triggered_at
-    });
+      alert.operator,
+      Number(alert.threshold)
+    );
+
+    const cooldownPassed =
+      minutesSince(alert.last_triggered_at) >= alert.cooldown_minutes;
 
     if (!shouldTrigger || !cooldownPassed) continue;
 
-    const updateRes = await supabase
+    console.log("🚨 TRIGGER:", alert.id);
+
+    // Update DB
+    await supabase
       .from("alerts")
       .update({ last_triggered_at: new Date().toISOString() })
       .eq("id", alert.id);
 
-    if (updateRes.error) throw updateRes.error;
+    // Insert event
+    await supabase.from("alert_events").insert({
+      alert_id: alert.id,
+      user_id: alert.user_id,
+      message: "Triggered"
+    });
 
-    const eventRes = await supabase
-      .from("alert_events")
-      .insert({
-        alert_id: alert.id,
-        user_id: alert.user_id,
+    const email = alert.users?.email;
+    if (!email) continue;
+
+    await sendMailgunEmail(
+      email,
+      `Bond Alert: ${alert.country}`,
+      buildEmailHtml({
         country: alert.country,
         metric: alert.metric,
         operator: alert.operator,
         threshold: alert.threshold,
-        current_value: metricValue,
-        message: `${alert.country} ${alert.metric} ${alert.operator} ${alert.threshold} triggered at ${metricValue}`
-      });
-
-    if (eventRes.error) throw eventRes.error;
-
-    console.log("Triggered alert:", alert.id);
+        currentValue: metricValue
+      })
+    );
   }
 
-  console.log("Alert check complete");
+  console.log("Done");
 }
 
 run().catch(err => {
-  console.error("Runner failed:", err);
+  console.error(err);
   process.exit(1);
 });
-async function loadEvents() {
-  const email = document.getElementById("lookupEmail").value;
-
-  if (!email) {
-    alert("Enter email first");
-    return;
-  }
-
-  const res = await fetch(API_BASE + "/alerts-events", {
-    method: "POST",
-    headers: headers(),
-    body: JSON.stringify({ email })
-  });
-
-  const data = await res.json();
-
-  const container = document.getElementById("eventsList");
-  container.innerHTML = "";
-
-  data.events.forEach(e => {
-    const div = document.createElement("div");
-    div.className = "alert-item";
-    div.innerText = `${e.country} triggered at ${e.current_value}`;
-    container.appendChild(div);
-  });
-}
