@@ -10,18 +10,7 @@
       background: #0b1220;
       color: white;
       padding: 40px;
-      max-width: 1100px;<select id="country">
-  <option value="United States">United States (Daily)</option>
-  <option value="United Kingdom">United Kingdom (Monthly)</option>
-  <option value="Germany">Germany (Monthly)</option>
-  <option value="France">France (Monthly)</option>
-  <option value="Italy">Italy (Monthly)</option>
-  <option value="Canada">Canada (Monthly)</option>
-  <option value="Australia">Australia (Monthly)</option>
-  <option value="South Korea">South Korea (Monthly)</option>
-  <option value="Israel">Israel (Monthly)</option>
-  <option value="Mexico">Mexico (Monthly)</option>
-</select>
+      max-width: 1100px;
       margin: auto;
     }
 
@@ -70,6 +59,14 @@
       border: none;
       box-sizing: border-box;
       font-size: 16px;
+    }
+
+    select {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background: white;
+      color: #111827;
     }
 
     button {
@@ -253,7 +250,7 @@
 
   <div class="notice">
     Alerts are evaluated using the latest available market data.
-    Some countries update daily (for example the United States), while others update monthly.
+    Some countries update daily, while others update monthly.
     This means alert timing depends on the update frequency of the selected market.
   </div>
 
@@ -261,22 +258,19 @@
     <h3>Create Alert</h3>
 
     <input id="email" placeholder="Email" />
-    <select id="country">
-  <option value="United States">United States (Daily)</option>
-  <option value="United Kingdom">United Kingdom (Monthly)</option>
-  <option value="Germany">Germany (Monthly)</option>
-  <option value="France">France (Monthly)</option>
-  <option value="Italy">Italy (Monthly)</option>
-  <option value="Canada">Canada (Monthly)</option>
-  <option value="Australia">Australia (Monthly)</option>
-  <option value="South Korea">South Korea (Monthly)</option>
-  <option value="Israel">Israel (Monthly)</option>
-  <option value="Mexico">Mexico (Monthly)</option>
-</select>
+
+    <select id="country"></select>
 
     <div class="grid-2">
-      <input id="metric" placeholder="Metric (yield or move)" />
-      <input id="operator" placeholder="gt or lt" />
+      <select id="metric">
+        <option value="yield">yield</option>
+        <option value="move">move</option>
+      </select>
+
+      <select id="operator">
+        <option value="gt">gt</option>
+        <option value="lt">lt</option>
+      </select>
     </div>
 
     <div class="grid-2">
@@ -292,11 +286,12 @@
     </div>
 
     <div class="helper">
-      Alerts are triggered based on the latest available observation. Some markets update daily, while others are reported monthly.
+      Alerts are triggered based on the latest available observation.
+      Some markets update daily, while others are reported monthly.
     </div>
 
     <div class="helper">
-      Metric "yield" uses yield values. Metric "move" should use basis points.
+      Metric "yield" uses yield values. Metric "move" uses market change values and should be interpreted in basis-point style logic.
     </div>
 
     <div class="upgrade-box">
@@ -328,7 +323,7 @@
 
   <script>
     const API_BASE = "https://ufifxuzrjpcoubsslomd.supabase.co/functions/v1";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmaWZ4dXpyanBjb3Vic3Nsb21kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MzA4NDgsImV4cCI6MjA5MTAwNjg0OH0.xYYLj28EbBtkQZZQtEmFZgVFDB5aPtEpAnMjRRjLUBo";
+    const SUPABASE_ANON_KEY = "PASTE_YOUR_KEY_HERE";
     const LIVE_JSON_URL = "https://botapi33.github.io/bondstats-global-yields/global_yields.json";
 
     function headers() {
@@ -358,12 +353,52 @@
       alert("Premium checkout coming next. For now, Premium can be activated manually.");
     }
 
+    async function loadCountries() {
+      try {
+        const res = await fetch(LIVE_JSON_URL);
+        const raw = await res.json();
+
+        const source = raw?.data || raw?.countries || raw || [];
+        const data = Array.isArray(source) ? source : Object.values(source);
+
+        const select = document.getElementById("country");
+        select.innerHTML = "";
+
+        data
+          .filter(item => item && typeof item === "object")
+          .sort((a, b) => {
+            const ay = Number(a.value ?? a.yield ?? 0);
+            const by = Number(b.value ?? b.yield ?? 0);
+            return by - ay;
+          })
+          .forEach(item => {
+            const country =
+              item.country ||
+              item.label ||
+              item.name ||
+              item.code ||
+              "Unknown";
+
+            const freq = item.frequency === "Daily" ? "Daily" : "Monthly";
+
+            const option = document.createElement("option");
+            option.value = country;
+            option.textContent = `${country} (${freq})`;
+
+            select.appendChild(option);
+          });
+
+      } catch (e) {
+        console.error("Failed to load countries", e);
+      }
+    }
+
     async function createAlert() {
       const payload = {
         email: document.getElementById("email").value.trim(),
-        country: document.getElementById("country").value.trim(),
-        metric: document.getElementById("metric").value.trim(),
-        operator: document.getElementById("operator").value.trim(),
+        country: document.getElementById("country").value,
+        metric: document.getElementById("metric").value,
+        operator: document.getElementById("operator").value,
         threshold: Number(document.getElementById("threshold").value),
         cooldown_minutes: Number(document.getElementById("cooldown").value || 720)
       };
@@ -546,6 +581,8 @@
     document.getElementById("createBtn").onclick = createAlert;
     document.getElementById("loadBtn").onclick = loadAlerts;
     document.getElementById("eventsBtn").onclick = loadEvents;
+
+    loadCountries();
   </script>
 </body>
 </html>
