@@ -10,7 +10,18 @@
       background: #0b1220;
       color: white;
       padding: 40px;
-      max-width: 1100px;
+      max-width: 1100px;<select id="country">
+  <option value="United States">United States (Daily)</option>
+  <option value="United Kingdom">United Kingdom (Monthly)</option>
+  <option value="Germany">Germany (Monthly)</option>
+  <option value="France">France (Monthly)</option>
+  <option value="Italy">Italy (Monthly)</option>
+  <option value="Canada">Canada (Monthly)</option>
+  <option value="Australia">Australia (Monthly)</option>
+  <option value="South Korea">South Korea (Monthly)</option>
+  <option value="Israel">Israel (Monthly)</option>
+  <option value="Mexico">Mexico (Monthly)</option>
+</select>
       margin: auto;
     }
 
@@ -250,7 +261,18 @@
     <h3>Create Alert</h3>
 
     <input id="email" placeholder="Email" />
-    <input id="country" placeholder="Country (e.g. United States)" />
+    <select id="country">
+  <option value="United States">United States (Daily)</option>
+  <option value="United Kingdom">United Kingdom (Monthly)</option>
+  <option value="Germany">Germany (Monthly)</option>
+  <option value="France">France (Monthly)</option>
+  <option value="Italy">Italy (Monthly)</option>
+  <option value="Canada">Canada (Monthly)</option>
+  <option value="Australia">Australia (Monthly)</option>
+  <option value="South Korea">South Korea (Monthly)</option>
+  <option value="Israel">Israel (Monthly)</option>
+  <option value="Mexico">Mexico (Monthly)</option>
+</select>
 
     <div class="grid-2">
       <input id="metric" placeholder="Metric (yield or move)" />
